@@ -1,13 +1,15 @@
 package Session1;
 
+import Session1.pojo.UserResponse;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.Test;
 import Session1.pojo.User;
 
-
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 public class HelloWorldRestAssuredSession1 {
+
 
     // ----  First Http request using Rest-Assured ------
     //We are sending a GET request to the https://api.escuelajs.co/api/v1/users/1
@@ -29,7 +31,7 @@ public class HelloWorldRestAssuredSession1 {
     // We are sending a POST  request to the https://api.escuelajs.co/api/v1/users/
     // and then validating that status code is 201 (Created) and that the response body contains a name field with the Angelica value
     @Test
-    public void createUser(){
+    public void createUserSerialize(){
 
         RestAssured.baseURI = "https://api.escuelajs.co/api/v1";
 
@@ -46,15 +48,40 @@ public class HelloWorldRestAssuredSession1 {
 
         RestAssured
                 .given()
-                .log().all()
-                .contentType("application/json")
-                .body(angelica) // Or JsonString in case you want to use the first approach
+                    .log().all()
+                    .contentType("application/json")
+                    .body(angelica) // Or JsonString in case you want to use the first approach
                 .when()
-                .post("/users/")
+                    .post("/users/")
                 .then()
-                .log().all()
-                .statusCode(201)
-                .body("name", equalTo("Angelica"));
+                    .log().all()
+                    .statusCode(201)
+                    .body("name", equalTo("Angelica"));
     }
 
+    @Test
+    public void createUserDeserialize(){
+
+        RestAssured.baseURI = "https://api.escuelajs.co/api/v1";
+
+        User angelica = new User("Angelica","angelica@test.com", "password", "https://i.imgur.com/yhW6Yw1.jpg");
+
+        UserResponse userResponse =
+                RestAssured
+                .given()
+                    .contentType("application/json")
+                    .body(angelica) // Or JsonString in case you want to use the first approach
+                .when()
+                    .post("/users/")
+                .then()
+                    .extract()
+                    .as(UserResponse.class);
+
+        System.out.println(userResponse);
+
+        assertThat(userResponse.getEmail(), equalTo("angelica@test.com"));
+        assertThat(userResponse.getId(), greaterThan(0));
+        assertThat(userResponse.getAvatar(), notNullValue());
+
+    }
 }
