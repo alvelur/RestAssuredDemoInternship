@@ -1,4 +1,4 @@
-package pojo;
+package Session1.pojo;
 
 public class User {
 
